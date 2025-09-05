@@ -2,7 +2,6 @@
 # application.yml — главный конфигурационный файл Spring Boot.
 #
 #Что нужно сделать:
-#  - Настроить параметры безопасности и JWT.
 #  - Включить Swagger UI.
 server:
   port: 8080
@@ -25,6 +24,9 @@ spring:
       hibernate.format_sql: true
   liquibase:
     change-log: 'classpath:/db/migration/changelog-master.yaml'
+jwt:
+  secret: VmVSeV9Db01wTGVYX3NFY1JlVF9mT3JfQmFOaw==
+  expiry-time: 900
 logging:
   level:
     org.springframework.web: debug
