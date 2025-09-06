@@ -75,7 +75,7 @@ public class CardService {
     }
 
     @Transactional
-    public CardDto activate(Long id) {
+    public void activate(Long id) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(CardNotFoundException::new);
 
@@ -88,12 +88,10 @@ public class CardService {
 
         card.setStatus(Card.Status.ACTIVE);
         cardRepository.save(card);
-
-        return card.toDto();
     }
 
     @Transactional
-    public CardDto block(Long id, User requester) {
+    public void block(Long id, User requester) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(CardNotFoundException::new);
 
@@ -109,16 +107,13 @@ public class CardService {
 
         card.setStatus(Card.Status.BLOCKED);
         cardRepository.save(card);
-
-        return card.toDto();
     }
 
     @Transactional
-    public CardDto delete(Long id) {
+    public void delete(Long id) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(CardNotFoundException::new);
         card.setDeleted(true);
         cardRepository.save(card);
-        return card.toDto();
     }
 }
