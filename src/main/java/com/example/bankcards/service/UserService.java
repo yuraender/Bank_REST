@@ -1,7 +1,7 @@
 package com.example.bankcards.service;
 
-import com.example.bankcards.dto.CreateUserRequest;
 import com.example.bankcards.dto.UserDto;
+import com.example.bankcards.dto.user.CreateUserRequest;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.entity.UserNotFoundException;
 import com.example.bankcards.repository.UserRepository;
@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +43,7 @@ public class UserService {
         return createdUser.toDto();
     }
 
+    @Transactional
     public void setEnabled(Long id, boolean enabled) {
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);

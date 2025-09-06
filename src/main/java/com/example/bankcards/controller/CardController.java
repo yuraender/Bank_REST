@@ -1,12 +1,10 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.CardDto;
-import com.example.bankcards.dto.UserDto;
-import com.example.bankcards.dto.user.CreateUserRequest;
+import com.example.bankcards.dto.card.CreateCardRequest;
+import com.example.bankcards.dto.card.CreateCardResponse;
 import com.example.bankcards.entity.User;
-import com.example.bankcards.exception.entity.UserAlreadyExistsException;
 import com.example.bankcards.service.CardService;
-import com.example.bankcards.service.UserService;
 import com.example.bankcards.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,21 +22,20 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/api/cards", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
-public class UserController {
+public class CardController {
 
-    private final UserService userService;
     private final CardService cardService;
 
-    @GetMapping("/me")
-    public ResponseEntity<UserDto> me(@AuthenticationPrincipal User principal) {
-        return ResponseEntity.ok().body(principal.toDto());
+    @GetMapping("/own")
+    public ResponseEntity<List<CardDto>> own(@AuthenticationPrincipal User principal) {
+        return ResponseEntity.ok().body(cardService.getByUserId(principal.getId()));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
-    public ResponseEntity<Page<UserDto>> getAll(
+    public ResponseEntity<Page<CardDto>> getAll(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "id") String sort,
@@ -51,38 +48,43 @@ public class UserController {
             sortDirection = Sort.Direction.DESC;
         }
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(sortDirection, sort));
-        return ResponseEntity.ok().body(userService.getAll(pageable));
+        return ResponseEntity.ok().body(cardService.getAll(pageable));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<UserDto> get(@PathVariable Long id) {
-        return ResponseEntity.ok().body(userService.getById(id));
-    }
-
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping("/{id}/cards")
-    public ResponseEntity<List<CardDto>> getUserCards(@PathVariable Long id) {
-        return ResponseEntity.ok().body(cardService.getByUserId(id));
+    public ResponseEntity<CardDto> get(@PathVariable Long id) {
+        return ResponseEntity.ok().body(cardService.getById(id));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping
-    public ResponseEntity<UserDto> create(
-            @RequestBody @Valid CreateUserRequest createUserRequest
+    public ResponseEntity<CreateCardResponse> create(
+            @RequestBody @Valid CreateCardRequest createCardRequest
     ) {
-        if (userService.existsByUsername(createUserRequest.getUsername())) {
-            throw new UserAlreadyExistsException();
-        }
-        return ResponseEntity.ok().body(userService.create(createUserRequest));
+        return ResponseEntity.ok().body(cardService.create(createCardRequest));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @PostMapping("/{id}/enabled")
-    public ResponseEntity<?> setEnabled(
-            @PathVariable long id, @RequestParam boolean value
+    @PostMapping("/{id}/activate")
+    public ResponseEntity<?> activate(@PathVariable long id) {
+        cardService.activate(id);
+        return ResponseUtil.buildMessage(HttpStatus.OK, "Card activated.");
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/{id}/block")
+    public ResponseEntity<?> block(
+            @PathVariable long id, @AuthenticationPrincipal User principal
     ) {
-        userService.setEnabled(id, value);
-        return ResponseUtil.buildMessage(HttpStatus.OK, value ? "User enabled." : "User disabled.");
+        cardService.block(id, principal);
+        return ResponseUtil.buildMessage(HttpStatus.OK, "Card blocked.");
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable long id) {
+        cardService.delete(id);
+        return ResponseUtil.buildMessage(HttpStatus.OK, "Card deleted.");
     }
 }

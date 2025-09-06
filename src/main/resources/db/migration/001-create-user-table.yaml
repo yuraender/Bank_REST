@@ -49,4 +49,4 @@ databaseChangeLog:
                   value: "ADMIN"
               - column:
                   name: enabled
-                  value: "1"
+                  valueBoolean: true

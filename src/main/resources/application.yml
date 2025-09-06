@@ -27,6 +27,8 @@ spring:
 jwt:
   secret: VmVSeV9Db01wTGVYX3NFY1JlVF9mT3JfQmFOaw==
   expiry-time: 900
+encryption:
+  secret: aS1sMWszLWVmZmVjdGl2ZS1tb2JpbGUh
 logging:
   level:
     org.springframework.web: debug
