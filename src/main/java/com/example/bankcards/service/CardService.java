@@ -1,6 +1,7 @@
 package com.example.bankcards.service;
 
 import com.example.bankcards.dto.CardDto;
+import com.example.bankcards.dto.UserDto;
 import com.example.bankcards.dto.card.CreateCardRequest;
 import com.example.bankcards.dto.card.CreateCardResponse;
 import com.example.bankcards.entity.Card;
@@ -76,10 +77,10 @@ public class CardService {
                 .orElseThrow(CardNotFoundException::new);
 
         if (card.isDeleted()) {
-            throw new CardDeletedException();
+            throw new CardDeletedException(card.toDto());
         }
         if (card.getExpiryDate().isBefore(LocalDate.now())) {
-            throw new CardExpiredException();
+            throw new CardExpiredException(card.toDto());
         }
 
         card.setStatus(Card.Status.ACTIVE);
@@ -87,17 +88,17 @@ public class CardService {
     }
 
     @Transactional
-    public void block(Long id, User requester) {
+    public void block(Long id, UserDto requester) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(CardNotFoundException::new);
 
         if (card.isDeleted()) {
-            throw new CardDeletedException();
+            throw new CardDeletedException(card.toDto());
         }
         if (card.getExpiryDate().isBefore(LocalDate.now())) {
-            throw new CardExpiredException();
+            throw new CardExpiredException(card.toDto());
         }
-        if (requester.getRole() != Role.ADMIN || !card.getUser().getId().equals(requester.getId())) {
+        if (requester.getRole() != Role.ADMIN && !card.getUser().getId().equals(requester.getId())) {
             throw new AccessDeniedException("You are not an owner of this card");
         }
 
@@ -109,6 +110,9 @@ public class CardService {
     public void delete(Long id) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(CardNotFoundException::new);
+        if (card.isDeleted()) {
+            throw new CardDeletedException(card.toDto());
+        }
         card.setDeleted(true);
         cardRepository.save(card);
     }

@@ -73,9 +73,10 @@ public class CardController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/{id}/block")
     public ResponseEntity<?> block(
-            @PathVariable long id, @AuthenticationPrincipal User principal
+            @AuthenticationPrincipal User principal,
+            @PathVariable long id
     ) {
-        cardService.block(id, principal);
+        cardService.block(id, principal.toDto());
         return ResponseUtil.buildMessage(HttpStatus.OK, "Card blocked.");
     }
 

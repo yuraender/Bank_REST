@@ -1,5 +1,6 @@
 package com.example.bankcards.dto.card;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,6 +19,7 @@ public class CreateCardRequest {
     private final String holder;
     @NotNull
     @Future
+    @JsonProperty("expiry_date")
     private final LocalDate expiryDate;
     @NotNull
     private final Long user;

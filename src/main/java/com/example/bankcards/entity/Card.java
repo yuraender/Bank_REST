@@ -47,16 +47,19 @@ public class Card {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    public Status getStatus() {
+        if (expiryDate.isBefore(LocalDate.now())) {
+            return Status.EXPIRED;
+        }
+        return status;
+    }
+
     public CardDto toDto() {
         EncryptionService encryptionService
                 = BankApplication.getInstance().getBean(EncryptionService.class);
-        Status status = this.status;
-        if (expiryDate.isBefore(LocalDate.now())) {
-            status = Status.EXPIRED;
-        }
         return new CardDto(
                 id, CardUtil.mask(encryptionService.decrypt(number)),
-                holder, expiryDate, status, balance,
+                holder, expiryDate, getStatus(), balance,
                 deleted
         );
     }
