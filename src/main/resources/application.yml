@@ -29,7 +29,16 @@ jwt:
   expiry-time: 900
 encryption:
   secret: aS1sMWszLWVmZmVjdGl2ZS1tb2JpbGUh
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
 logging:
   level:
     org.springframework.web: debug
+    org.springframework.security: debug
     org.springframework.security.config.annotation.authentication.configuration: error
+    liquibase: info

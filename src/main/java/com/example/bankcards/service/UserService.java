@@ -3,6 +3,7 @@ package com.example.bankcards.service;
 import com.example.bankcards.dto.UserDto;
 import com.example.bankcards.dto.user.CreateUserRequest;
 import com.example.bankcards.entity.User;
+import com.example.bankcards.exception.entity.UserAlreadyExistsException;
 import com.example.bankcards.exception.entity.UserNotFoundException;
 import com.example.bankcards.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,11 +30,11 @@ public class UserService {
                 .orElseThrow(UserNotFoundException::new);
     }
 
-    public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
-    }
-
+    @Transactional
     public UserDto create(CreateUserRequest createUserRequest) {
+        if (userRepository.existsByUsername(createUserRequest.getUsername())) {
+            throw new UserAlreadyExistsException();
+        }
         User user = new User();
         user.setUsername(createUserRequest.getUsername());
         user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
