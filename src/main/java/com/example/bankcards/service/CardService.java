@@ -34,17 +34,17 @@ public class CardService {
     private final EncryptionService encryptionService;
 
     public Page<CardDto> getAll(Pageable pageable) {
-        return cardRepository.findAll(pageable).map(Card::toDto);
+        return cardRepository.findAll(pageable).map(c -> c.toDto(encryptionService));
     }
 
     public CardDto getById(Long id) {
         return cardRepository.findById(id)
-                .map(Card::toDto)
+                .map(c -> c.toDto(encryptionService))
                 .orElseThrow(CardNotFoundException::new);
     }
 
     public Page<CardDto> getByUserId(Long userId, Pageable pageable) {
-        return cardRepository.findByUserId(userId, pageable).map(Card::toDto);
+        return cardRepository.findByUserId(userId, pageable).map(c -> c.toDto(encryptionService));
     }
 
     @Transactional
@@ -68,7 +68,7 @@ public class CardService {
         card.setUser(user);
 
         Card createdCard = cardRepository.save(card);
-        return new CreateCardResponse(number, createdCard.toDto());
+        return new CreateCardResponse(number, createdCard.toDto(encryptionService));
     }
 
     @Transactional
@@ -77,10 +77,10 @@ public class CardService {
                 .orElseThrow(CardNotFoundException::new);
 
         if (card.isDeleted()) {
-            throw new CardDeletedException(card.toDto());
+            throw new CardDeletedException(card.toDto(encryptionService));
         }
         if (card.getExpiryDate().isBefore(LocalDate.now())) {
-            throw new CardExpiredException(card.toDto());
+            throw new CardExpiredException(card.toDto(encryptionService));
         }
 
         card.setStatus(Card.Status.ACTIVE);
@@ -93,10 +93,10 @@ public class CardService {
                 .orElseThrow(CardNotFoundException::new);
 
         if (card.isDeleted()) {
-            throw new CardDeletedException(card.toDto());
+            throw new CardDeletedException(card.toDto(encryptionService));
         }
         if (card.getExpiryDate().isBefore(LocalDate.now())) {
-            throw new CardExpiredException(card.toDto());
+            throw new CardExpiredException(card.toDto(encryptionService));
         }
         if (requester.getRole() != Role.ADMIN && !card.getUser().getId().equals(requester.getId())) {
             throw new AccessDeniedException("You are not an owner of this card");
@@ -111,7 +111,7 @@ public class CardService {
         Card card = cardRepository.findById(id)
                 .orElseThrow(CardNotFoundException::new);
         if (card.isDeleted()) {
-            throw new CardDeletedException(card.toDto());
+            throw new CardDeletedException(card.toDto(encryptionService));
         }
         card.setDeleted(true);
         cardRepository.save(card);

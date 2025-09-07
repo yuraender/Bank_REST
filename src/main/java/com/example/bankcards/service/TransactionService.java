@@ -11,6 +11,7 @@ import com.example.bankcards.entity.Transaction;
 import com.example.bankcards.exception.entity.*;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.TransactionRepository;
+import com.example.bankcards.util.EncryptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,7 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final CardRepository cardRepository;
+    private final EncryptionService encryptionService;
 
     @Transactional
     public Page<TransactionDto> getByCardId(Long cardId, UserDto requester, Pageable pageable) {
@@ -48,7 +50,7 @@ public class TransactionService {
     public TransactionDto deposit(DepositRequest depositRequest) {
         Card card = cardRepository.findById(depositRequest.getCard())
                 .orElseThrow(CardNotFoundException::new);
-        validateCard(card.toDto());
+        validateCard(card.toDto(encryptionService));
 
         card.setBalance(card.getBalance().add(depositRequest.getAmount()));
         cardRepository.save(card);
@@ -75,8 +77,8 @@ public class TransactionService {
                 || !to.getUser().getId().equals(requester.getId())) {
             throw new AccessDeniedException("You are not an owner of these cards");
         }
-        validateCard(from.toDto());
-        validateCard(to.toDto());
+        validateCard(from.toDto(encryptionService));
+        validateCard(to.toDto(encryptionService));
         if (from.getBalance().compareTo(transactionRequest.getAmount()) < 0) {
             throw new InsufficientFundsException();
         }

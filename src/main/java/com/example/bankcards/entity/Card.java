@@ -1,6 +1,5 @@
 package com.example.bankcards.entity;
 
-import com.example.bankcards.BankApplication;
 import com.example.bankcards.dto.CardDto;
 import com.example.bankcards.util.CardUtil;
 import com.example.bankcards.util.EncryptionService;
@@ -54,9 +53,7 @@ public class Card {
         return status;
     }
 
-    public CardDto toDto() {
-        EncryptionService encryptionService
-                = BankApplication.getInstance().getBean(EncryptionService.class);
+    public CardDto toDto(EncryptionService encryptionService) {
         return new CardDto(
                 id, CardUtil.mask(encryptionService.decrypt(number)),
                 holder, expiryDate, getStatus(), balance,
