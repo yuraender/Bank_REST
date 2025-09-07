@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-transaction-table
+      author: YuraEnder
+      changes:
+        - createTable:
+            tableName: transactions
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT(20)
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: from_id
+                  type: BIGINT(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: to_id
+                  type: BIGINT(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DECIMAL(19, 4)
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0.0000
+              - column:
+                  name: comment
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date
+                  type: DATETIME
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: transactions
+            baseColumnNames: from_id
+            constraintName: fk_transactions_from_id
+            referencedTableName: cards
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            baseTableName: transactions
+            baseColumnNames: to_id
+            constraintName: fk_transactions_to_id
+            referencedTableName: cards
+            referencedColumnNames: id
