@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -43,11 +42,8 @@ public class CardService {
                 .orElseThrow(CardNotFoundException::new);
     }
 
-    public List<CardDto> getByUserId(Long userId) {
-        return cardRepository.findByUserId(userId)
-                .stream()
-                .map(Card::toDto)
-                .toList();
+    public Page<CardDto> getByUserId(Long userId, Pageable pageable) {
+        return cardRepository.findByUserId(userId, pageable).map(Card::toDto);
     }
 
     @Transactional

@@ -5,21 +5,18 @@ import com.example.bankcards.dto.card.CreateCardRequest;
 import com.example.bankcards.dto.card.CreateCardResponse;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.service.CardService;
+import com.example.bankcards.util.PageableUtil;
 import com.example.bankcards.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api/cards", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -29,8 +26,15 @@ public class CardController {
     private final CardService cardService;
 
     @GetMapping("/own")
-    public ResponseEntity<List<CardDto>> own(@AuthenticationPrincipal User principal) {
-        return ResponseEntity.ok().body(cardService.getByUserId(principal.getId()));
+    public ResponseEntity<Page<CardDto>> own(
+            @AuthenticationPrincipal User principal,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "id") String sort,
+            @RequestParam(defaultValue = "asc") String direction
+    ) {
+        Pageable pageable = PageableUtil.makePageable(page - 1, limit, direction, sort);
+        return ResponseEntity.ok().body(cardService.getByUserId(principal.getId(), pageable));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -41,13 +45,7 @@ public class CardController {
             @RequestParam(defaultValue = "id") String sort,
             @RequestParam(defaultValue = "asc") String direction
     ) {
-        Sort.Direction sortDirection;
-        if (direction.equalsIgnoreCase("asc")) {
-            sortDirection = Sort.Direction.ASC;
-        } else {
-            sortDirection = Sort.Direction.DESC;
-        }
-        Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(sortDirection, sort));
+        Pageable pageable = PageableUtil.makePageable(page - 1, limit, direction, sort);
         return ResponseEntity.ok().body(cardService.getAll(pageable));
     }
 

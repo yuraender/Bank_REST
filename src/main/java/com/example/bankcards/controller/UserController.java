@@ -7,21 +7,18 @@ import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.entity.UserAlreadyExistsException;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.UserService;
+import com.example.bankcards.util.PageableUtil;
 import com.example.bankcards.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -44,13 +41,7 @@ public class UserController {
             @RequestParam(defaultValue = "id") String sort,
             @RequestParam(defaultValue = "asc") String direction
     ) {
-        Sort.Direction sortDirection;
-        if (direction.equalsIgnoreCase("asc")) {
-            sortDirection = Sort.Direction.ASC;
-        } else {
-            sortDirection = Sort.Direction.DESC;
-        }
-        Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(sortDirection, sort));
+        Pageable pageable = PageableUtil.makePageable(page - 1, limit, direction, sort);
         return ResponseEntity.ok().body(userService.getAll(pageable));
     }
 
@@ -62,8 +53,15 @@ public class UserController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/{id}/cards")
-    public ResponseEntity<List<CardDto>> getUserCards(@PathVariable Long id) {
-        return ResponseEntity.ok().body(cardService.getByUserId(id));
+    public ResponseEntity<Page<CardDto>> getUserCards(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "id") String sort,
+            @RequestParam(defaultValue = "asc") String direction
+    ) {
+        Pageable pageable = PageableUtil.makePageable(page - 1, limit, direction, sort);
+        return ResponseEntity.ok().body(cardService.getByUserId(id, pageable));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
